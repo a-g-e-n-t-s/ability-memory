@@ -1,0 +1,14 @@
+{
+  "name": "ability-memory",
+  "version": "0.1.0",
+  "description": "Memory operations ability - ArcadeDB graph storage, short-term context, relevance queries",
+  "entrypoint": "index.ts",
+  "scripts": {
+    "preflight": "node --version",
+    "setup": "npm install",
+    "start": "npx tsx index.ts",
+    "serve": "npx tsx index.ts stdio",
+    "serve:broker": "npx tsx index.ts broker",
+    "clean": "rm -rf node_modules package-lock.json"
+  }
+}

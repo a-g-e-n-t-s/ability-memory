@@ -1,0 +1,16 @@
+{
+  "name": "ability-memory",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Memory operations ability - ArcadeDB graph storage, short-term context, relevance queries",
+  "author": "Yu-Wei Tseng",
+  "license": "Apache License 2.0",
+  "dependencies": {
+    "@kadi.build/core": "^0.9.0",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^17.3.1",
+    "js-yaml": "^4.1.0",
+    "tsx": "^4.21.0"
+  }
+}
