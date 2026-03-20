@@ -1,0 +1,56 @@
+# agent-memory-ability configuration (sample)
+# =============================================
+#
+# Place this file (or merge the `memory:` section) into a config.yml
+# that lives at or above the working directory. The ability discovers
+# it via walk-up search from CWD.
+#
+# Non-sensitive settings only. Credentials (MEMORY_API_KEY, MEMORY_API_URL)
+# are managed by secret-ability via the `models` vault — never put them here.
+#
+# Environment variable overrides (highest priority):
+#   MEMORY_DATABASE, MEMORY_EMBEDDING_MODEL, MEMORY_EXTRACTION_MODEL,
+#   MEMORY_SUMMARIZATION_MODEL, MEMORY_CHAT_MODEL, MEMORY_DEFAULT_AGENT,
+#   MEMORY_EMBEDDING_TRANSPORT, MEMORY_CHAT_TRANSPORT
+#
+# Resolution order (highest wins):
+#   1. Environment variables
+#   2. Vault "models" (MEMORY_API_KEY, MEMORY_API_URL)
+#   3. config.yml (this file — `memory:` section)
+#   4. Built-in defaults
+
+memory:
+  # ArcadeDB database name
+  database: kadi_memory
+
+  # ── Models ──────────────────────────────────────────────────────────
+  # Embedding model for vectorizing memories
+  embedding_model: text-embedding-3-small
+
+  # LLM model for topic/entity extraction during memory-store
+  extraction_model: gpt-5-nano
+
+  # LLM model for conversation summarization (memory-summarize)
+  summarization_model: gpt-5-mini
+
+  # LLM model for general chat operations
+  chat_model: gpt-5-mini
+
+  # ── Agent ───────────────────────────────────────────────────────────
+  # Default agent identifier when none is provided in tool calls
+  default_agent: default
+
+  # ── Transport ───────────────────────────────────────────────────────
+  # How to reach the embedding provider:
+  #   'api'    — Direct HTTP POST to OpenAI-compatible /v1/embeddings (default, ~10x faster)
+  #   'broker' — Via broker's model-manager (invokeRemote('create-embedding'))
+  embedding_transport: api
+
+  # How to reach the chat/extraction provider:
+  #   'api'    — Direct HTTP POST to /v1/chat/completions
+  #   'broker' — Via broker's model-manager
+  chat_transport: api
+
+  # ── Credentials (DO NOT put secrets here) ───────────────────────────
+  # api_url:  # loaded from vault → MEMORY_API_URL
+  # api_key:  # loaded from vault → MEMORY_API_KEY

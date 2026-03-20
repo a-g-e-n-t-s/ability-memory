@@ -1,14 +1,64 @@
 {
-  "name": "ability-memory",
-  "version": "0.1.0",
-  "description": "Memory operations ability - ArcadeDB graph storage, short-term context, relevance queries",
-  "entrypoint": "index.ts",
+  "name": "agent-memory-ability",
+  "version": "0.0.8",
+  "description": "Domain layer for conversational agent memory — thin wrapper over graph-ability providing 7 memory-* tools with enforced Memory schema defaults",
+  "type": "ability",
+  "entrypoint": "dist/index.js",
+  "abilities": {
+    "graph-ability": "^0.0.7",
+    "secret-ability": "^0.9.0"
+  },
+  "brokers": {
+    "default": "ws://localhost:8080/kadi",
+    "local": "ws://localhost:8080/kadi"
+  },
   "scripts": {
-    "preflight": "node --version",
-    "setup": "npm install",
-    "start": "npx tsx index.ts",
-    "serve": "npx tsx index.ts stdio",
-    "serve:broker": "npx tsx index.ts broker",
-    "clean": "rm -rf node_modules package-lock.json"
+    "setup": "npm install && npm run build",
+    "start": "node dist/index.js broker"
+  },
+  "build": {
+    "default": {
+      "image": "agent-memory-ability:1.0.0",
+      "from": "node:22-slim",
+      "platform": "linux/amd64",
+      "cli": "latest",
+      "run": [
+        "npm ci",
+        "npm run build",
+        "kadi install kadi-install",
+        "kadi install kadi-run",
+        "kadi install kadi-secret",
+        "kadi install"
+      ],
+      "cmd": [
+        "sh",
+        "-c",
+        "kadi run start"
+      ]
+    }
+  },
+  "deploy": {
+    "local": {
+      "target": "local",
+      "engine": "docker",
+      "services": {
+        "agent": {
+          "image": "agent-memory-ability:1.0.0",
+          "command": [
+            "sh",
+            "-c",
+            "kadi secret receive --vault models && kadi run start"
+          ]
+        }
+      },
+      "secrets": {
+        "vault": "models",
+        "required": [
+          "MEMORY_API_KEY",
+          "MEMORY_API_URL"
+        ],
+        "delivery": "broker"
+      }
+    }
   }
 }

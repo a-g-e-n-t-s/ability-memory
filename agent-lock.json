@@ -1,0 +1,43 @@
+{
+  "lockfileVersion": 1,
+  "metadata": {
+    "kadiVersion": "0.0.7",
+    "generated": "2026-03-20T09:00:48.427Z",
+    "metaHash": "sha256-7e428f778474efda25ca314fae94ee682d11aeb971430c7d78dc1f3959002ff7",
+    "source": "agent.json"
+  },
+  "agent": {
+    "name": "agent-memory-ability",
+    "version": "0.0.8"
+  },
+  "abilities": {
+    "graph-ability@0.0.7": {
+      "version": "0.0.7",
+      "resolvedVersion": "0.0.7",
+      "requestedVersion": "^0.0.7",
+      "type": "ability",
+      "resolved": "abilities/graph-ability@0.0.7",
+      "entrypoint": "dist/index.js",
+      "integrity": "",
+      "source": "http://kadi.build:8000",
+      "dependencies": {
+        "secret-ability": "^0.9.1"
+      },
+      "isTopLevel": true,
+      "requiredBy": []
+    },
+    "secret-ability@0.9.3": {
+      "version": "0.9.3",
+      "resolvedVersion": "0.9.3",
+      "requestedVersion": "^0.9.0",
+      "type": "ability",
+      "resolved": "abilities/secret-ability@0.9.3",
+      "entrypoint": "dist/index.js",
+      "integrity": "sha512-D0OEGZrJGuDYvc8XLcMHzpqnvt5x8ZuKKnBR/w8H7Rv02kI7Ctf4+oQ8nvsaN3SZiDysD32P3q6fEpayEAt0pw==",
+      "source": "http://kadi.build:8000",
+      "dependencies": {},
+      "isTopLevel": true,
+      "requiredBy": []
+    }
+  }
+}
