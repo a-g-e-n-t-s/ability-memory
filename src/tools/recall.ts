@@ -9,6 +9,7 @@ import { KadiClient, z } from '@kadi.build/core';
 
 import type { MemoryConfig } from '../lib/config.js';
 import type { SignalAbilities } from '../lib/graph-types.js';
+import { resolveAgentFilter } from '../lib/agent-filter.js';
 
 export function registerRecallTool(
   client: KadiClient,
@@ -22,10 +23,12 @@ export function registerRecallTool(
       description:
         'Search stored memories using semantic, keyword, graph, or hybrid mode. ' +
         'Default mode is hybrid (combines semantic + keyword + graph with RRF fusion ' +
-        'and importance weighting). Agent isolation is enforced automatically.',
+        'and importance weighting). Agent isolation is enforced automatically. ' +
+        'Pass agent: "*" for cross-agent recall, or agent: ["a", "b"] for multi-agent.',
       input: z.object({
         query: z.string().describe('Search query text'),
-        agent: z.string().optional().describe('Agent identifier (default: from config)'),
+        agent: z.union([z.string(), z.array(z.string())]).optional()
+          .describe('Agent filter: string, array of strings, or "*" for all agents (default: from config)'),
         limit: z.number().optional().describe('Max results (default: 10)'),
         mode: z.enum(['semantic', 'keyword', 'graph', 'hybrid']).optional()
           .describe('Search mode (default: hybrid)'),
@@ -39,13 +42,13 @@ export function registerRecallTool(
     },
     async (input) => {
       try {
-        const agent = input.agent ?? config.defaultAgent;
+        const { agentFilter, agentDisplay } = resolveAgentFilter(input.agent, config.defaultAgent);
         const limit = input.limit ?? 10;
         const mode = input.mode ?? 'hybrid';
 
-        // Build agent filter — enforces agent isolation
+        // Build filters — spread agent filter (may be empty for wildcard)
         const filters: Record<string, unknown> = {
-          agent,
+          ...agentFilter,
         };
 
         if (input.conversationId) {
@@ -74,7 +77,7 @@ export function registerRecallTool(
 
         return {
           ...result,
-          agent,
+          agent: agentDisplay,
           mode,
         };
       } catch (err: unknown) {

@@ -8,6 +8,7 @@ import { KadiClient, z } from '@kadi.build/core';
 
 import type { MemoryConfig } from '../lib/config.js';
 import type { SignalAbilities } from '../lib/graph-types.js';
+import { resolveAgentFilter } from '../lib/agent-filter.js';
 
 export function registerContextTool(
   client: KadiClient,
@@ -27,14 +28,15 @@ export function registerContextTool(
         entity: z.string().optional().describe('Entity name to start from'),
         entityType: z.string().optional().describe('Entity type filter'),
         memoryRid: z.string().optional().describe('Memory RID to start from (e.g., "#12:0")'),
-        agent: z.string().optional().describe('Agent filter for Memory vertices'),
+        agent: z.union([z.string(), z.array(z.string())]).optional()
+          .describe('Agent filter: string, array, or "*" for all agents'),
         depth: z.number().optional().describe('Traversal depth (1-4, default: 2)'),
         limit: z.number().optional().describe('Max recalled results to expand (default: 5)'),
       }),
     },
     async (input) => {
       try {
-        const agent = input.agent ?? config.defaultAgent;
+        const { agentFilter, agentDisplay } = resolveAgentFilter(input.agent, config.defaultAgent);
         const depth = Math.max(1, Math.min(4, input.depth ?? 2));
         const limit = input.limit ?? 5;
 
@@ -45,7 +47,7 @@ export function registerContextTool(
             vertexType: 'Memory',
             depth,
             limit,
-            filters: { agent },
+            filters: { ...agentFilter },
             signals: ['semantic', 'keyword', 'graph'],
             database: config.database,
             embedding: {
@@ -58,7 +60,7 @@ export function registerContextTool(
 
           return {
             ...result,
-            agent,
+            agent: agentDisplay,
           };
         }
 
@@ -85,9 +87,7 @@ export function registerContextTool(
           };
         }
 
-        // Use graph-context with a dummy query to get traversal
-        // (the context tool will expand from recalled results)
-        // For direct RID, we do a manual traversal via graph-query
+        // For direct RID, do a manual traversal via graph-query
         const traversalResult = await abilities.invoke<{
           success: boolean;
           result?: Array<Record<string, unknown>>;
@@ -137,7 +137,7 @@ export function registerContextTool(
           edges,
           vertexCount: vertices.length,
           edgeCount: edges.length,
-          agent,
+          agent: agentDisplay,
         };
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);

@@ -8,18 +8,18 @@
   },
   "agent": {
     "name": "agent-memory-ability",
-    "version": "0.0.8"
+    "version": "0.0.9"
   },
   "abilities": {
-    "graph-ability@0.0.7": {
-      "version": "0.0.7",
-      "resolvedVersion": "0.0.7",
+    "graph-ability@0.0.12": {
+      "version": "0.0.12",
+      "resolvedVersion": "0.0.12",
       "requestedVersion": "^0.0.7",
       "type": "ability",
-      "resolved": "abilities/graph-ability@0.0.7",
+      "resolved": "abilities/graph-ability@0.0.12",
       "entrypoint": "dist/index.js",
       "integrity": "",
-      "source": "http://kadi.build:8000",
+      "source": "local",
       "dependencies": {
         "secret-ability": "^0.9.1"
       },

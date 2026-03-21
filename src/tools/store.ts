@@ -55,7 +55,7 @@ export function registerStoreTool(
         }
 
         if (input.metadata) {
-          properties.metadata = JSON.stringify(input.metadata);
+          properties.metadata = input.metadata;
         }
 
         // Build edges for conversation if provided

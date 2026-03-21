@@ -23,25 +23,58 @@ export function registerConversationsTool(
         'List conversation sessions sorted by most recent. ' +
         'Returns conversation metadata including start/end times, memory count, and summary.',
       input: z.object({
-        agent: z.string().optional().describe('Agent identifier (default: from config)'),
+        agent: z.union([z.string(), z.array(z.string())]).optional()
+          .describe('Agent filter: string, array, or "*" for all agents (default: from config)'),
         since: z.string().optional().describe('Only conversations after this ISO date'),
         limit: z.number().optional().describe('Max results (default: 20)'),
       }),
     },
     async (input) => {
       try {
-        const agent = input.agent ?? config.defaultAgent;
         const limit = Math.max(1, Math.min(100, input.limit ?? 20));
 
-        const conditions: string[] = [`agent = '${escapeSimple(agent)}'`];
+        // Build agent condition based on input type
+        const agentInput = input.agent ?? config.defaultAgent;
+        let agentCondition: string;
+        let agentDisplay: string | string[];
+
+        if (agentInput === '*') {
+          // Wildcard — no agent filter
+          agentCondition = '';
+          agentDisplay = '*';
+        } else if (Array.isArray(agentInput)) {
+          if (agentInput.length === 0 || agentInput.includes('*')) {
+            agentCondition = '';
+            agentDisplay = '*';
+          } else if (agentInput.length === 1) {
+            agentCondition = `agent = '${escapeSimple(agentInput[0])}'`;
+            agentDisplay = agentInput[0];
+          } else {
+            const escaped = agentInput.map((a) => `'${escapeSimple(a)}'`).join(', ');
+            agentCondition = `agent IN [${escaped}]`;
+            agentDisplay = agentInput;
+          }
+        } else {
+          agentCondition = `agent = '${escapeSimple(agentInput)}'`;
+          agentDisplay = agentInput;
+        }
+
+        const conditions: string[] = [];
+        if (agentCondition) {
+          conditions.push(agentCondition);
+        }
         if (input.since) {
           conditions.push(`startTime >= '${escapeSimple(input.since)}'`);
         }
 
+        const whereClause = conditions.length > 0
+          ? ` WHERE ${conditions.join(' AND ')}`
+          : '';
+
         const sql =
           `SELECT conversationId, startTime, endTime, memoryCount, summary` +
           ` FROM Conversation` +
-          ` WHERE ${conditions.join(' AND ')}` +
+          whereClause +
           ` ORDER BY startTime DESC` +
           ` LIMIT ${limit}`;
 
@@ -90,7 +123,7 @@ export function registerConversationsTool(
         return {
           conversations,
           count: conversations.length,
-          agent,
+          agent: agentDisplay,
         };
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);

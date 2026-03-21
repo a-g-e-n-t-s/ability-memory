@@ -1,6 +1,6 @@
 {
   "name": "ability-memory",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Domain layer for conversational agent memory — thin wrapper over graph-ability",
   "type": "module",
   "main": "dist/index.js",
