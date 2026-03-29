@@ -6,11 +6,11 @@
   "entrypoint": "dist/index.js",
   "abilities": {
     "graph-ability": "^0.0.7",
-    "secret-ability": "^0.9.0"
+    "secret-ability": "^0.9.4"
   },
   "brokers": {
-    "default": "ws://localhost:8080/kadi",
-    "local": "ws://localhost:8080/kadi"
+    "local": "ws://localhost:8080/kadi",
+    "remote": "wss://broker.dadavidtseng.info/kadi"
   },
   "scripts": {
     "setup": "npm install && npm run build",
