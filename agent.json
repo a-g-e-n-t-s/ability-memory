@@ -1,8 +1,8 @@
 {
-  "name": "agent-memory-ability",
+  "name": "ability-memory",
+  "type": "ability",
   "version": "0.0.8",
   "description": "Domain layer for conversational agent memory — thin wrapper over graph-ability providing 7 memory-* tools with enforced Memory schema defaults",
-  "type": "ability",
   "entrypoint": "dist/index.js",
   "abilities": {
     "graph-ability": "^0.0.7",
@@ -13,8 +13,12 @@
     "remote": "wss://broker.dadavidtseng.info/kadi"
   },
   "scripts": {
+    "preflight": "node --version",
     "setup": "npm install && npm run build",
-    "start": "node dist/index.js broker"
+    "build": "npx tsc",
+    "start": "node dist/index.js broker",
+    "dev": "npx tsx src/index.ts",
+    "clean": "rm -rf node_modules abilities agent-lock.json package-lock.json dist"
   },
   "build": {
     "default": {
