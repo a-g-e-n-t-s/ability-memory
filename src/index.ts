@@ -122,6 +122,8 @@ const MEMORY_VERTEX: VertexTypeDef = {
     embedding: 'EMBEDDEDLIST',
     conversationId: 'STRING',
     metadata: 'STRING',
+    mentions: 'INTEGER',
+    valid: 'BOOLEAN',
   },
   indexes: [
     { property: 'agent', type: 'NOTUNIQUE' },

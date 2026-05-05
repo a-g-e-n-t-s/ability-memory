@@ -164,6 +164,7 @@ export async function reconcileFacts(
   facts: Fact[],
   abilities: SignalAbilities,
   config: MemoryConfig,
+  agent?: string,
 ): Promise<ReconciliationResult> {
   const startTime = Date.now();
 
@@ -185,7 +186,7 @@ export async function reconcileFacts(
         mode: 'hybrid',
         limit: 5,
         database: config.database,
-        filters: { agent: config.defaultAgent },
+        filters: { agent: agent ?? config.defaultAgent },
         embedding: {
           model: config.embeddingModel,
           transport: config.embeddingTransport,

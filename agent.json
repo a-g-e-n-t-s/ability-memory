@@ -1,11 +1,11 @@
 {
   "name": "ability-memory",
   "type": "ability",
-  "version": "0.0.108",
+  "version": "0.0.12",
   "description": "Domain layer for conversational agent memory — thin wrapper over graph-ability providing 7 memory-* tools with enforced Memory schema defaults",
   "entrypoint": "dist/index.js",
   "abilities": {
-    "ability-graph": "*",
+    "ability-graph": "^0.0.15",
     "secret-ability": "*"
   },
   "brokers": {
@@ -21,7 +21,7 @@
   },
   "build": {
     "default": {
-      "image": "ability-memory:0.0.10",
+      "image": "ability-memory:0.0.12",
       "from": "node:22-slim",
       "platform": "linux/amd64",
       "cli": "latest",
@@ -46,19 +46,19 @@
       "engine": "docker",
       "services": {
         "agent": {
-          "image": "ability-memory:0.0.10",
+          "image": "ability-memory:0.0.12",
           "command": [
             "sh",
             "-c",
-            "kadi secret receive --vault models && kadi run start"
+            "kadi secret receive --vault model-manager && kadi run start"
           ]
         }
       },
       "secrets": {
-        "vault": "models",
+        "vault": "model-manager",
         "required": [
-          "MEMORY_API_KEY",
-          "MEMORY_API_URL"
+          "MODEL_MANAGER_BASE_URL",
+          "MODEL_MANAGER_API_KEY"
         ],
         "delivery": "broker"
       }
@@ -74,28 +74,39 @@
       "engine": "podman",
       "services": {
         "agent": {
-          "image": "ability-memory:0.0.10",
+          "image": "ability-memory:0.0.12",
           "command": [
             "sh",
             "-c",
-            "kadi secret receive --vault models && kadi run start"
+            "kadi secret receive --vault model-manager && kadi run start"
           ],
           "expose": [
-            { "port": 3000, "as": 80, "to": [{ "global": true }] }
+            {
+              "port": 3000,
+              "as": 80,
+              "to": [
+                {
+                  "global": true
+                }
+              ]
+            }
           ],
           "resources": {
             "cpu": 0.5,
             "memory": "512Mi",
             "ephemeralStorage": "1Gi"
           },
-          "pricing": { "amount": "500", "denom": "uact" }
+          "pricing": {
+            "amount": "500",
+            "denom": "uact"
+          }
         }
       },
       "secrets": {
-        "vault": "models",
+        "vault": "model-manager",
         "required": [
-          "MEMORY_API_KEY",
-          "MEMORY_API_URL"
+          "MODEL_MANAGER_BASE_URL",
+          "MODEL_MANAGER_API_KEY"
         ],
         "delivery": "broker"
       }
