@@ -1,6 +1,6 @@
 {
   "name": "ability-memory",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Domain layer for conversational agent memory — thin wrapper over graph-ability",
   "type": "module",
   "main": "dist/index.js",
@@ -13,12 +13,9 @@
     "test:integration": "vitest run tests/integration"
   },
   "dependencies": {
-    "@kadi.build/core": "^0.11.2",
-    "js-yaml": "^4.1.0"
+    "@kadi.build/core": "*"
   },
   "devDependencies": {
-    "ability-graph": "file:../ability-graph",
-    "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.0.0",
     "typescript": "^5.7.0",
     "tsx": "^4.0.0",

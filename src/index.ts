@@ -1,7 +1,7 @@
 /**
  * agent-memory-ability — Domain layer for conversational agent memory.
  *
- * Thin wrapper over graph-ability providing 7 memory-* tools with enforced
+ * Thin wrapper over ability-graph providing 7 memory-* tools with enforced
  * Memory schema defaults, agent isolation, conversation management,
  * cascade deletion, and LLM summarization.
  *
@@ -15,7 +15,7 @@
  *
  * Boot sequence (all modes):
  *   1. Load config with vault credentials (async, top-level await)
- *   2. loadNative('graph-ability') — import the core graph engine
+ *   2. loadNative('ability-graph') — import the core graph engine
  *   3. Register all 7 memory-* tools
  *   4. (CLI only) Register schema → connect to broker → serve
  *
@@ -174,7 +174,7 @@ export const MEMORY_SCHEMA: SchemaDefinition = {
 // ── Async initialization (top-level await) ────────────────────────────
 //
 // Loads credentials from vault via secret-ability, connects to broker,
-// loads graph-ability natively, then registers all 7 memory-* tools.
+// loads ability-graph natively, then registers all 7 memory-* tools.
 // By the time `import()` resolves (for native consumers) or `kadi run`
 // starts serving, all tools are fully configured and registered.
 
@@ -182,27 +182,27 @@ export const MEMORY_SCHEMA: SchemaDefinition = {
 console.log('[agent-memory-ability] Loading configuration…');
 const config: MemoryConfig = await loadMemoryConfigWithVault(client);
 
-// 2. Load graph-ability as native dependency (no timeout — batch ops are long-running)
-console.log('[agent-memory-ability] Loading graph-ability…');
+// 2. Load ability-graph as native dependency (no timeout — batch ops are long-running)
+console.log('[agent-memory-ability] Loading ability-graph…');
 let graphAbility: LoadedAbility | null = null;
 try {
-  graphAbility = await client.loadNative('graph-ability', { timeout: 0 });
-  console.log('[agent-memory-ability] graph-ability loaded');
+  graphAbility = await client.loadNative('ability-graph', { timeout: 0 });
+  console.log('[agent-memory-ability] ability-graph loaded');
 } catch (err: any) {
   console.warn(
-    '[agent-memory-ability] graph-ability native load failed, continuing:',
+    '[agent-memory-ability] ability-graph native load failed, continuing:',
     err?.message ?? err,
   );
 }
 
-// 3. Build abilities router — all tools go through graph-ability.
+// 3. Build abilities router — all tools go through ability-graph.
 //    Long-running tools (graph-batch-store) use timeout:0 to avoid the
 //    native transport's default 10-minute timeout.
 const LONG_RUNNING_TOOLS = new Set(['graph-batch-store']);
 const abilities: SignalAbilities = {
   invoke: <T>(tool: string, params: Record<string, unknown>) => {
     if (!graphAbility) {
-      throw new Error('graph-ability not loaded — cannot invoke tools');
+      throw new Error('ability-graph not loaded — cannot invoke tools');
     }
     const opts = LONG_RUNNING_TOOLS.has(tool) ? { timeout: 0 } : undefined;
     return graphAbility.invoke<T>(tool, params, opts);
@@ -245,7 +245,7 @@ if (isMainModule) {
 
     console.log('[agent-memory-ability] Serving via broker.');
 
-    // Register schema via graph-ability
+    // Register schema via ability-graph
     try {
       console.log('[agent-memory-ability] Registering Memory schema…');
       const schemaResult = await abilities.invoke('graph-schema-register', {

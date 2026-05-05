@@ -1,15 +1,14 @@
 {
   "name": "ability-memory",
   "type": "ability",
-  "version": "0.0.8",
+  "version": "0.0.108",
   "description": "Domain layer for conversational agent memory — thin wrapper over graph-ability providing 7 memory-* tools with enforced Memory schema defaults",
   "entrypoint": "dist/index.js",
   "abilities": {
-    "graph-ability": "^0.0.7",
-    "secret-ability": "^0.9.4"
+    "ability-graph": "*",
+    "secret-ability": "*"
   },
   "brokers": {
-    "local": "ws://localhost:8080/kadi",
     "remote": "wss://broker.dadavidtseng.com/kadi"
   },
   "scripts": {
@@ -22,7 +21,7 @@
   },
   "build": {
     "default": {
-      "image": "agent-memory-ability:1.0.0",
+      "image": "ability-memory:0.0.10",
       "from": "node:22-slim",
       "platform": "linux/amd64",
       "cli": "latest",
@@ -47,12 +46,49 @@
       "engine": "docker",
       "services": {
         "agent": {
-          "image": "agent-memory-ability:1.0.0",
+          "image": "ability-memory:0.0.10",
           "command": [
             "sh",
             "-c",
             "kadi secret receive --vault models && kadi run start"
           ]
+        }
+      },
+      "secrets": {
+        "vault": "models",
+        "required": [
+          "MEMORY_API_KEY",
+          "MEMORY_API_URL"
+        ],
+        "delivery": "broker"
+      }
+    },
+    "akash": {
+      "target": "akash",
+      "network": "mainnet",
+      "deposit": "10",
+      "blacklist": [
+        "akash1sevd2ymtty3dpq9ycxgkhuzzk4fe6mchqdwd4e",
+        "akash14w36hwrtuqqa3j92fa8ctcxlhjgvr3a0zpp7cj"
+      ],
+      "engine": "podman",
+      "services": {
+        "agent": {
+          "image": "ability-memory:0.0.10",
+          "command": [
+            "sh",
+            "-c",
+            "kadi secret receive --vault models && kadi run start"
+          ],
+          "expose": [
+            { "port": 3000, "as": 80, "to": [{ "global": true }] }
+          ],
+          "resources": {
+            "cpu": 0.5,
+            "memory": "512Mi",
+            "ephemeralStorage": "1Gi"
+          },
+          "pricing": { "amount": "500", "denom": "uact" }
         }
       },
       "secrets": {

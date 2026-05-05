@@ -4,7 +4,7 @@
  * Resolution order (highest wins):
  *   1. Environment variables  (MEMORY_DATABASE, MEMORY_API_KEY, ...)
  *   2. Vault "models"         (MEMORY_API_KEY, MEMORY_API_URL — encrypted in secrets.toml)
- *   3. `config.yml` file      (walk-up from CWD — memory section)
+ *   3. `config.toml` file     (walk-up from CWD — [memory] section)
  *   4. Built-in defaults
  *
  * This is the domain-specific config for agent memory. It extends graph-ability's
@@ -13,7 +13,47 @@
 
 import { existsSync, readFileSync } from 'fs';
 import { dirname, join } from 'path';
-import { load } from 'js-yaml';
+
+// ── Lightweight TOML parser (same pattern as agents-library/src/utils/config.ts) ──
+
+function parseTomlValue(raw: string): unknown {
+  if (raw === 'true') return true;
+  if (raw === 'false') return false;
+  if (/^-?\d+$/.test(raw)) return parseInt(raw, 10);
+  if (/^-?\d+\.\d+$/.test(raw)) return parseFloat(raw);
+  if (raw.startsWith('"') && raw.endsWith('"')) return raw.slice(1, -1);
+  if (raw.startsWith("'") && raw.endsWith("'")) return raw.slice(1, -1);
+  if (raw.startsWith('[') && raw.endsWith(']')) {
+    return raw.slice(1, -1).split(',').map(s => parseTomlValue(s.trim()));
+  }
+  return raw;
+}
+
+function parseSimpleToml(content: string): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  let currentSection = '';
+
+  for (const rawLine of content.split('\n')) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+
+    const sectionMatch = line.match(/^\[([a-zA-Z0-9._-]+)\]$/);
+    if (sectionMatch) {
+      currentSection = sectionMatch[1];
+      continue;
+    }
+
+    const kvMatch = line.match(/^([a-zA-Z0-9_-]+)\s*=\s*(.+)$/);
+    if (!kvMatch) continue;
+
+    const key = kvMatch[1];
+    const rawValue = kvMatch[2].trim();
+    const fullKey = currentSection ? `${currentSection}.${key}` : key;
+    result[fullKey] = parseTomlValue(rawValue);
+  }
+
+  return result;
+}
 
 /** Track whether config has already been logged to avoid log spam. */
 let configLogged = false;
@@ -46,7 +86,7 @@ export const VAULT_KEYS = ['MEMORY_API_KEY', 'MEMORY_API_URL'] as const;
 /**
  * Walk up from CWD looking for config.yml — mirrors vault discovery pattern.
  */
-function findConfigFile(filename = 'config.yml'): string | null {
+function findConfigFile(filename = 'config.toml'): string | null {
   let dir = process.cwd();
   while (true) {
     const candidate = join(dir, filename);
@@ -67,7 +107,7 @@ function loadConfigSection(): Record<string, unknown> {
     if (!configLogged) {
       configLogged = true;
       console.warn(
-        '[agent-memory-ability] No config.yml found — using env vars / vault only',
+        '[agent-memory-ability] No config.toml found — using env vars / vault only',
       );
     }
     return {};
@@ -75,10 +115,20 @@ function loadConfigSection(): Record<string, unknown> {
 
   if (!configLogged) {
     configLogged = true;
-    console.log(`[agent-memory-ability] config.yml loaded from ${configPath}`);
+    console.log(`[agent-memory-ability] config.toml loaded from ${configPath}`);
   }
-  const parsed = load(readFileSync(configPath, 'utf8')) as Record<string, unknown>;
-  return (parsed?.memory as Record<string, unknown>) ?? {};
+
+  const content = readFileSync(configPath, 'utf8');
+  const flat = parseSimpleToml(content);
+
+  // Extract memory.* keys into a plain object
+  const section: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(flat)) {
+    if (key.startsWith('memory.')) {
+      section[key.slice('memory.'.length)] = value;
+    }
+  }
+  return section;
 }
 
 // ── Vault loading ─────────────────────────────────────────────────────
@@ -151,7 +201,7 @@ function buildConfig(vault: Record<string, string>): MemoryConfig {
     database:
       process.env.MEMORY_DATABASE ??
       (file.database as string) ??
-      'kadi_memory',
+      'agents_memory',
     embeddingModel:
       process.env.MEMORY_EMBEDDING_MODEL ??
       (file.embedding_model as string) ??
