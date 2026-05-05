@@ -124,6 +124,8 @@ const MEMORY_VERTEX: VertexTypeDef = {
     metadata: 'STRING',
     mentions: 'INTEGER',
     valid: 'BOOLEAN',
+    invalidatedAt: 'STRING',
+    invalidatedBy: 'STRING',
   },
   indexes: [
     { property: 'agent', type: 'NOTUNIQUE' },

@@ -49,6 +49,7 @@ export function registerRecallTool(
         // Build filters — spread agent filter (may be empty for wildcard)
         const filters: Record<string, unknown> = {
           ...agentFilter,
+          valid: true,
         };
 
         if (input.conversationId) {

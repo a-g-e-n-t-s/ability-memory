@@ -271,11 +271,11 @@ async function executeReconciliationActions(
             results.push({ action: 'DELETE', factText: entry.fact.text, success: false, error: 'no target ID' });
             break;
           }
-          // Soft-delete: set valid=false
+          // Soft-delete: set valid=false with metadata
           await abilities.invoke('graph-command', {
             database: config.database,
             command:
-              `UPDATE ${entry.targetId} SET valid = false, invalidatedAt = '${now}'`,
+              `UPDATE ${entry.targetId} SET valid = false, invalidatedAt = '${now}', invalidatedBy = '${escapeSimple(entry.fact.text)}'`,
           });
           results.push({ action: 'DELETE', factText: entry.fact.text, targetId: entry.targetId, success: true });
           break;
