@@ -7,10 +7,10 @@ Domain layer for conversational agent memory in the [KĀDI](https://kadi.build) 
 - **7 memory-specific tools** — store, recall, context, relate, forget, conversations, summarize
 - **Agent isolation** — every query is automatically scoped to the calling agent
 - **Conversation sessions** — group memories by `conversationId`, track duration and count
-- **LLM summarization** — generate conversation summaries via `chat-completion`
+- **LLM summarization** — generate 2–4 sentence conversation summaries via the configured chat model (configurable; default: `gpt-5-mini`)
 - **Cascade delete** — forget a memory and automatically clean up orphaned Topics/Entities
 - **Three deployment modes** — native library, remote broker ability, or standalone CLI
-- **Vault-first credentials** — API keys loaded from the `model-manager` vault via `secret-ability`; no `.env` files
+- **Vault-first credentials** — API keys loaded from the `models` vault via `secret-ability`; no `.env` files
 - **Comprehensive test suite** — 58 unit tests + 19 integration tests
 
 ## Quick Start
@@ -166,3 +166,7 @@ Retrieve rich graph context around a topic, entity, or memory. Supports four mod
 | `query` | `string` | no | Search query for recall-based context |
 | `topic` | `string` | no | Topic name to start from |
 | `entity` | `string` | no | Entity name
+
+---
+
+(Other tools — `memory-relate`, `memory-forget`, `memory-conversations`, `memory-summarize` — are registered as part of the ability and follow the patterns shown above; `memory-summarize` produces a concise 2–4 sentence summary of a conversation using the configured chat LLM.)
