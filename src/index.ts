@@ -126,6 +126,8 @@ const MEMORY_VERTEX: VertexTypeDef = {
     valid: 'BOOLEAN',
     invalidatedAt: 'STRING',
     invalidatedBy: 'STRING',
+    access_count: 'INTEGER',
+    last_accessed: 'DATETIME',
   },
   indexes: [
     { property: 'agent', type: 'NOTUNIQUE' },

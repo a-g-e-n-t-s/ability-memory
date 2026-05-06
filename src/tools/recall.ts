@@ -10,6 +10,7 @@ import { KadiClient, z } from '@kadi.build/core';
 import type { MemoryConfig } from '../lib/config.js';
 import type { SignalAbilities } from '../lib/graph-types.js';
 import { resolveAgentFilter } from '../lib/agent-filter.js';
+import { reflectOnFragments } from '../lib/reflect.js';
 
 export function registerRecallTool(
   client: KadiClient,
@@ -24,7 +25,8 @@ export function registerRecallTool(
         'Search stored memories using semantic, keyword, graph, or hybrid mode. ' +
         'Default mode is hybrid (combines semantic + keyword + graph with RRF fusion ' +
         'and importance weighting). Agent isolation is enforced automatically. ' +
-        'Pass agent: "*" for cross-agent recall, or agent: ["a", "b"] for multi-agent.',
+        'Pass agent: "*" for cross-agent recall, or agent: ["a", "b"] for multi-agent. ' +
+        'Pass reflect: true to synthesize fragments into a coherent summary via LLM.',
       input: z.object({
         query: z.string().describe('Search query text'),
         agent: z.union([z.string(), z.array(z.string())]).optional()
@@ -38,6 +40,8 @@ export function registerRecallTool(
           .describe('Optional topic filter for graph mode'),
         conversationId: z.string().optional()
           .describe('Filter to a specific conversation'),
+        reflect: z.boolean().optional()
+          .describe('Synthesize fragments into coherent summary via LLM (default: false)'),
       }),
     },
     async (input) => {
@@ -76,10 +80,38 @@ export function registerRecallTool(
           },
         });
 
+        // Access tracking — fire-and-forget update of access_count and last_accessed
+        const results = Array.isArray((result as any).results) ? (result as any).results : [];
+        if (results.length > 0) {
+          const now = new Date().toISOString();
+          const rids = results
+            .map((r: any) => r.rid ?? r.id)
+            .filter((rid: string) => rid?.startsWith('#'));
+          if (rids.length > 0) {
+            abilities.invoke('graph-command', {
+              database: config.database,
+              command: `UPDATE Memory SET access_count = ifnull(access_count, 0) + 1, last_accessed = '${now}' WHERE @rid IN [${rids.join(',')}]`,
+            }).catch(() => {});
+          }
+        }
+
+        // Reflect synthesis — produce coherent summary from fragments
+        let reflect: Record<string, unknown> | undefined;
+        if (input.reflect) {
+          const fragments = Array.isArray((result as any).results)
+            ? (result as any).results
+            : [];
+          const synthesis = await reflectOnFragments(abilities, config, input.query, fragments);
+          if (synthesis) {
+            reflect = synthesis as unknown as Record<string, unknown>;
+          }
+        }
+
         return {
           ...result,
           agent: agentDisplay,
           mode,
+          ...(reflect ? { reflect } : {}),
         };
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
