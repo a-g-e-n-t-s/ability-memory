@@ -5,7 +5,7 @@
   "description": "Domain layer for conversational agent memory — thin wrapper over graph-ability providing 7 memory-* tools with enforced Memory schema defaults",
   "entrypoint": "dist/index.js",
   "abilities": {
-    "ability-graph": "^0.1.0",
+    "ability-graph": "^0.1.2",
     "secret-ability": "*"
   },
   "brokers": {
