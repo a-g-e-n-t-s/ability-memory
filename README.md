@@ -12,6 +12,7 @@ Domain layer for conversational agent memory in the [KĀDI](https://kadi.build) 
 - **Three deployment modes** — native library, remote broker ability, or standalone CLI
 - **Vault-first credentials** — API keys are loaded from a vault via `secret-ability` (see `agent.json` / `config.toml`; deployments commonly use the `model-manager` vault), no `.env` files
 - **Comprehensive test suite** — 58 unit tests + 19 integration tests
+- **Config defaults (from config.toml)** — database=`agents_memory`, embedding_model=`text-embedding-3-small`, extraction_model=`gpt-5-nano`, summarization_model=`gpt-5-mini`, chat_model=`gpt-5-mini`, default_agent=`default`, embedding_transport=`api`, chat_transport=`api`
 
 ## Quick Start
 
@@ -113,7 +114,7 @@ node dist/index.js stdio
 
 ### `memory-store`
 
-Store a memory with automatic entity extraction, embedding, and graph linking. Enforces `vertexType=Memory`, auto-adds agent and timestamp, creates Conversation vertex and `InConversation` edge when `conversationId` is provided.
+Store a memory with automatic fact extraction, reconciliation, embedding, and graph linking. Enforces `vertexType=Memory`, auto-adds agent and timestamp, creates Conversation vertex and `InConversation` edge when `conversationId` is provided.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -172,3 +173,11 @@ Retrieve rich graph context around a topic, entity, or memory. Supports four mod
 (Other tools — `memory-relate`, `memory-forget`, `memory-conversations`, `memory-summarize` — are registered as part of the ability and follow the patterns shown above; `memory-summarize` produces a concise 2–4 sentence summary of a conversation using the configured chat LLM.)
 
 ---
+
+### Registered Tools (summary)
+
+- memory-context: Retrieve a graph context around a topic, entity, or memory.
+- memory-conversations: List conversation sessions sorted by most recent.
+- memory-forget: Delete memories matching given criteria. Requires `confirm: true` as a safety guard.
+- memory-recall: Search stored memories using semantic, keyword, graph, or hybrid mode.
+- memory-relate: Create a typed, weighted relationship between any two vertices (mem
